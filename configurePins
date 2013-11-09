@@ -1,0 +1,5 @@
+#!/bin/sh
+echo 7 > /sys/class/gpio/export
+echo in > /sys/class/gpio/gpio7/direction
+chmod 0666 /sys/class/gpio/gpio7/value
+

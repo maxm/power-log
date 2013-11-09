@@ -1,0 +1,4 @@
+message PowerLog {
+  required int64 start = 1;
+  repeated int32 offset = 2 [packed=true];
+}
