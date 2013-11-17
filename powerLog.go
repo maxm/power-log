@@ -21,14 +21,15 @@ func check(err error) {
 }
 
 func fileLogName(when int64) string {
-  return time.Unix(0, when).Format("2006-01-02")
+    return time.Unix(0, when).UTC().Format("2006-01-02")
 }
 
 func saveCurrentLog() {
   if currentLog == nil || len(logPath) == 0 { return }
   data, err := proto.Marshal(currentLog)
   check(err)
-  fd, _ := os.Create(logPath + fileLogName(*currentLog.Start))
+  fd, err := os.Create(logPath + fileLogName(*currentLog.Start))
+  check(err)
   fd.Write(data)
   fd.Close()
 }
@@ -71,7 +72,7 @@ func pollPulses() {
     }
     previous = current[0]
 
-    now := time.Now().UnixNano()
+    now := time.Now().UTC().UnixNano()
 
     if count == pulseLength && previous == '1' {
       ones = true
@@ -82,22 +83,28 @@ func pollPulses() {
       lastPulse = now
       ones = false
     }
-    
+
     delta := int64(10 * time.Millisecond)
     time.Sleep(time.Duration(delta - now % delta))
   }
 }
 
 func main() {
+  flag.Parse()
   args := flag.Args()
   if len(args) > 0 {
     logPath = args[0]
     if !strings.HasSuffix(logPath, "/") { logPath += "/" }
-    fd, err := os.Open(logPath + fileLogName(time.Now().UnixNano()))
-    if err != nil {
+    filename := logPath + fileLogName(time.Now().UTC().UnixNano());
+    fd, err := os.Open(filename);
+    if err == nil {
       buffer := make([]byte, 100000)
       fd.Read(buffer)
+      currentLog = new(powerLog.PowerLog)
       proto.Unmarshal(buffer, currentLog)
+      fmt.Printf("Open existing log %v with %v pulses\n", filename, len(currentLog.Offset))
+    } else {
+      fmt.Printf("%v\n", err)
     }
   }
   pollPulses()
