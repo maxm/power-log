@@ -31,7 +31,6 @@ func httpServer() {
       if err != nil { to = math.MaxInt64}
       dispatchSync(func() {
         result.Pulses = listPulses(from, to)
-        fmt.Printf("Range request with %v pulses\n", len(result.Pulses))
       })
     } else {
       fmt.Printf("Range request with invalid parameters %v\n", r.Form)
@@ -39,5 +38,6 @@ func httpServer() {
     data, _ := json.Marshal(result)
     w.Write(data)
   })
+  http.Handle("/", http.FileServer(http.Dir("web")))
   http.ListenAndServe(":8080", nil)
 }
