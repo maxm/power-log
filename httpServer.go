@@ -31,7 +31,7 @@ func httpServer() {
       if err != nil { to = math.MaxInt64}
       dispatchSync(func() {
         result.Pulses = listPulses(from, to)
-        fmt.Printf("%v pulses", len(result.Pulses))
+        fmt.Printf("Range request with %v pulses\n", len(result.Pulses))
       })
     } else {
       fmt.Printf("Range request with invalid parameters %v\n", r.Form)

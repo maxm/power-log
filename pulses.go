@@ -126,7 +126,6 @@ func pollPulses(logPath string) {
 }
 
 func listPulses(from, to int64) []int64 {
-  fmt.Printf("list %v to %v\n", from, to)
   pulses := make([]int64, 0, 10000)
   if (len(logs) == 0) { return pulses }
   log := len(logs) - 1
@@ -137,9 +136,7 @@ func listPulses(from, to int64) []int64 {
   }
   for ;log < len(logs); log += 1 {
     start = *logs[log].Start
-    fmt.Printf("log %v, %v\n", log, start)
     for _,offset := range logs[log].Offset {
-      fmt.Printf("%v %v\n", start, offset)
       pulse := start + int64(offset)
       if pulse >= to {
         return pulses
