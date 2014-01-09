@@ -36,6 +36,7 @@ func httpServer() {
       fmt.Printf("Range request with invalid parameters %v\n", r.Form)
     }
     data, _ := json.Marshal(result)
+    w.Header()["Access-Control-Allow-Origin"] = []string{"*"}
     w.Write(data)
   })
   http.Handle("/", http.FileServer(http.Dir("web")))
