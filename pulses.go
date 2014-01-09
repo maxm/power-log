@@ -21,7 +21,7 @@ func saveCurrentLog(logPath string) {
   if currentLog == nil || len(logPath) == 0 { return }
   data, err := proto.Marshal(currentLog)
   check(err)
-  fd, err := os.Create(logPath + fileLogName((*currentLog.Start) * time.Millisecond))
+  fd, err := os.Create(logPath + fileLogName((*currentLog.Start) * int64(time.Millisecond)))
   check(err)
   fd.Write(data)
   fd.Close()
