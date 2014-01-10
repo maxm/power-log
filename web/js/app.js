@@ -10,22 +10,41 @@
 
   $(document).ready(function() {
     pollPulses();
+    updateNow();
   });
+
+  function updateNow() {
+    if (lastPulses.length > 2) {
+      var lastPulse = lastPulses[lastPulses.length-1];
+      var watts = deltaToWatts(lastPulse - lastPulses[lastPulses.length-2])
+      $('#wattsNow').text(watts.toString())
+      var now = new Date().getTime();
+      var seconds = (now - lastPulse) / 1000;
+      if (seconds < 45) {
+        $('#wattsNowTime').text("seconds ago")
+      } else {
+        var minutes = Math.round(seconds / 60);
+        if (minutes == 1) {
+          $('#wattsNowTime').text("one minute ago")  
+        } else {
+          $('#wattsNowTime').text(minutes + " minutes ago")
+        }
+      }
+    }
+    setTimeout(updateNow, 5000);
+  }
 
   function pollPulses() {
     var time = new Date().getTime();
     $.get("range", { from: time - pollPulseMillis },function(data) {
       lastPulses = data.Pulses;
-      if (lastPulses.length > 2) {
-        var watts = deltaToWatts(lastPulses[lastPulses.length-1] - lastPulses[lastPulses.length-2])
-        $('#wattsNow').text(watts.toString())
-        drawNowChart();
-      }
+      drawChart();
+      updateNow();
       setTimeout(pollPulses, 2000);
     }, "json");
   }
 
-  function drawNowChart() {
+  function drawChart() {
     if(!chartsReady) return;
     var watts = [['Time', 'Power']];
     var lastT = 0;
@@ -41,10 +60,18 @@
       title: 'Last ' + pollPulsesHours + ' hours',
       hAxis: {
         format: 'HH:mm'
+      },
+      vAxis: { 
+        viewWindow:{
+          min: 0
+        }
+      },
+      chartArea: {
+        height: 600
       }
     };
 
-    var chart = new google.visualization.LineChart(document.getElementById('nowChart'));
+    var chart = new google.visualization.LineChart(document.getElementById('chart'));
     chart.draw(data, options);
   }
 
