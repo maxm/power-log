@@ -1,4 +1,12 @@
 #wattsNowContainer {
   text-align: right;
-  margin-right: 200pt;
+}
+
+.container {
+  margin-right: 200pt; 
+  margin-left: 200pt; 
+}
+
+.container ul {
+  float: left;
 }

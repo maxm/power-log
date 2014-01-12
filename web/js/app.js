@@ -1,14 +1,20 @@
 (function() {
 
-  var pollPulsesHours = 6
-  var pollPulseMillis = pollPulsesHours*60*60*1000;
+  var pollPulsesHours = 0
+  var pollPulseMillis = 0
+
   var lastPulses = []
   var chartsReady = false
+
+  var pollPulseEnd = null
+
+  var pollTimer = null
 
   google.load('visualization', '1.0', {'packages':['corechart']});
   google.setOnLoadCallback(function() { chartsReady = true; });
 
   $(document).ready(function() {
+    setPulseHourSpan(6);
     pollPulses();
     updateNow();
   });
@@ -35,12 +41,13 @@
   }
 
   function pollPulses() {
-    var time = new Date().getTime();
-    $.get("range", { from: time - pollPulseMillis },function(data) {
+    if (pollTimer) clearTimeout(pollTimer);
+    var time = pollPulseEnd ? pollPulseEnd : new Date().getTime();
+    $.get("http://localhost:8090/range", { from: time - pollPulseMillis, to: time },function(data) {
       lastPulses = data.Pulses;
       drawChart();
       updateNow();
-      setTimeout(pollPulses, 2000);
+      if (pollPulseEnd == null) pollTimer = setTimeout(pollPulses, 2000);
     }, "json");
   }
 
@@ -48,8 +55,10 @@
     if(!chartsReady) return;
     var watts = [['Time', 'Power']];
     var lastT = 0;
+    var total = 0;
     $.each(lastPulses, function(i,t) {
       if (i > 0) {
+        ++total;
         watts.push([new Date(t), deltaToWatts(t-lastT)])
       }
       lastT = t;
@@ -57,9 +66,9 @@
     var data = google.visualization.arrayToDataTable(watts);
 
     var options = {
-      title: 'Last ' + pollPulsesHours + ' hours',
+      fontSize: 14,
       hAxis: {
-        format: 'HH:mm'
+        format: 'MMM d, HH:mm'
       },
       vAxis: { 
         viewWindow:{
@@ -67,8 +76,9 @@
         }
       },
       chartArea: {
-        height: 600
-      }
+        height: 500
+      },
+      legend: {position: 'none'}
     };
 
     var chart = new google.visualization.LineChart(document.getElementById('chart'));
@@ -77,6 +87,31 @@
 
   function deltaToWatts(delta) {
     return Math.round(60*60*1000/delta);
+  }
+
+  setPulseHourSpan = function(hours) {
+    pollPulsesHours = hours
+    pollPulseMillis = pollPulsesHours*60*60*1000;
+    pollPulses();
+    return false;
+  }
+
+  setPulseEnd = function(end) {
+    pollPulseEnd = end;
+    pollPulses();
+    return false;
+  }
+
+  movePulseEndDays = function(days) {
+    if (pollPulseEnd == null) {
+      pollPulseEnd = new Date().getTime();
+    }
+    pollPulseEnd += days * 24*60*60*1000;
+    if (pollPulseEnd > new Date().getTime()) {
+      pollPulseEnd = null;
+    }
+    pollPulses();
+    return false;
   }
 
 })();
