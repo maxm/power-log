@@ -43,7 +43,7 @@
   function pollPulses() {
     if (pollTimer) clearTimeout(pollTimer);
     var time = pollPulseEnd ? pollPulseEnd : new Date().getTime();
-    $.get("http://localhost:8090/range", { from: time - pollPulseMillis, to: time },function(data) {
+    $.get("range", { from: time - pollPulseMillis, to: time },function(data) {
       lastPulses = data.Pulses;
       drawChart();
       updateNow();
